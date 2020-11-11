@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------------/
-| Program : .js
-| Event   : InspectionMultipleScheduleBefore
+| Program : V360InspectionResultSubmitBeforeV3.0.js
+| Event   : V360InspectionResultSubmitBefore
 |
 | Usage   : Master Script by Accela.  See accompanying documentation and release notes.
 |
@@ -18,14 +18,15 @@
 |     will no longer be considered a "Master" script and will not be supported in future releases.  If
 |     changes are made, please add notes above.
 /------------------------------------------------------------------------------------------------------*/
-var controlString = "InspectionScheduleBefore"; // Standard choice for control
-var preExecute = "PreExecuteForAfterEvents"; // Standard choice to execute first (for globals, etc)
-var documentOnly = false; // Document Only -- displays hierarchy of std choice steps
+var controlString = "InspectionResultSubmitBefore"; // Standard choice for control
+var preExecute = "PreExecuteForAfterEvents" // Standard choice to execute first (for globals, etc)
+	var documentOnly = false; // Document Only -- displays hierarchy of std choice steps
+
 /*------------------------------------------------------------------------------------------------------/
 | END User Configurable Parameters
 /------------------------------------------------------------------------------------------------------*/
 var SCRIPT_VERSION = 3.0;
-var useCustomScriptFile = true;  // if true, use Events->Custom Script, else use Events->Scripts->INCLUDES_CUSTOM
+
 var useSA = false;
 var SA = null;
 var SAScript = null;
@@ -44,11 +45,11 @@ if (SA) {
 	eval(getScriptText("INCLUDES_ACCELA_GLOBALS", SA));
 	eval(getScriptText(SAScript, SA));
 } else {
-	eval(getScriptText("INCLUDES_ACCELA_FUNCTIONS",null,true));
-	eval(getScriptText("INCLUDES_ACCELA_GLOBALS",null,true));
+	eval(getScriptText("INCLUDES_ACCELA_FUNCTIONS"));
+	eval(getScriptText("INCLUDES_ACCELA_GLOBALS"));
 }
 
-eval(getScriptText("INCLUDES_CUSTOM",null,useCustomScriptFile));
+eval(getScriptText("INCLUDES_CUSTOM"));
 
 if (documentOnly) {
 	doStandardChoiceActions(controlString, false, 0);
@@ -70,87 +71,68 @@ if (bzr) {
 	doScripts = bvr1.getSuccess() && bvr1.getOutput().getAuditStatus() != "I";
 }
 
-function getScriptText(vScriptName, servProvCode, useProductScripts) {
-	if (!servProvCode)  servProvCode = aa.getServiceProviderCode();
+function getScriptText(vScriptName) {
+	var servProvCode = aa.getServiceProviderCode();
+	if (arguments.length > 1)
+		servProvCode = arguments[1]; // use different serv prov code
 	vScriptName = vScriptName.toUpperCase();
 	var emseBiz = aa.proxyInvoker.newInstance("com.accela.aa.emse.emse.EMSEBusiness").getOutput();
 	try {
-		if (useProductScripts) {
-			var emseScript = emseBiz.getMasterScript(aa.getServiceProviderCode(), vScriptName);
-		} else {
-			var emseScript = emseBiz.getScriptByPK(aa.getServiceProviderCode(), vScriptName, "ADMIN");
-		}
+		var emseScript = emseBiz.getScriptByPK(servProvCode, vScriptName, "ADMIN");
 		return emseScript.getScriptText() + "";
 	} catch (err) {
 		return "";
 	}
 }
+
 /*------------------------------------------------------------------------------------------------------/
 | BEGIN Event Specific Variables
 /------------------------------------------------------------------------------------------------------*/
-
 //
 // load up an array of result objects
 //
 
-schedObjArray = new Array();
+resultObjArray = new Array();
 
-var s_id1 = aa.env.getValue("PermitID1Array");
-var s_id2 = aa.env.getValue("PermitID2Array");
-var s_id3 = aa.env.getValue("PermitID3Array");
-var inspIdArr = aa.env.getValue("InspectionIDArray");
-var inspInspArr = aa.env.getValue("InspectionInspectorArray");
-var NumberOfInspections = inspInspArr.length;
-var inspAMPMArray = aa.env.getValue("InspectionAMPMArray");
-var inspEndAMPMArray = aa.env.getValue("InspectionEndAMPMArray");
-var inspDateArray = aa.env.getValue("InspectionDateArray");
-var inspEndTimeArray  = aa.env.getValue("InspectionEndTimeArray");
-var inspTimeArray = aa.env.getValue("InspectionTimeArray");
-var parentInspIDArray = aa.env.getValue("ParentInspectionIDArray");
-var inspInspArr = aa.env.getValue("InspectionInspectorArray");
-var InspectionMode = "";  //added because ISB is evaluating this variable
-
+var s_id1 = aa.env.getValue("PermitId1Array");
+var s_id2 = aa.env.getValue("PermitId2Array");
+var s_id3 = aa.env.getValue("PermitId3Array");
+var inspTypeArr = aa.env.getValue("InspectionTypeArray");
+var inspResultArr = aa.env.getValue("InspectionResultArray");
+var inspIdArr = aa.env.getValue("InspectionIdArray");
+var inspResultCommentArr = aa.env.getValue("InspectionResultCommentArray");
 var resultCapIdStringSave = null;
 
 for (thisElement in s_id1) {
-	var r = new schedObj();
+	var r = new resultObj();
 	var s_capResult = aa.cap.getCapID(s_id1[thisElement], s_id2[thisElement], s_id3[thisElement]);
 	if (s_capResult.getSuccess())
 		r.capId = s_capResult.getOutput();
-	else{
+	else
 		logDebug("**ERROR: Failed to get capId: " + s_capResult.getErrorMessage());
-	}
 	r.capIdString = r.capId.getCustomID();
+	r.inspType = inspTypeArr[thisElement];
+	r.inspResult = inspResultArr[thisElement];
 	r.inspId = inspIdArr[thisElement];
-	r.inspector = inspInspArr[thisElement];
-	r.time = inspTimeArray[thisElement];
-	r.date = inspDateArray[thisElement];
-	r.AMPM = inspAMPMArray[thisElement];
-	r.parent = parentInspIDArray[thisElement];
-	if(r.inspId == "-1"){
-		r.inspObj = null;
-	}
-	else{
-		r.inspObj =  aa.inspection.getInspection(r.capId,r.inspId).getOutput();
-	}	
-	schedObjArray.push(r);
+	r.resultComment = inspResultCommentArr[thisElement];
+	resultObjArray.push(r);
 }
 
-schedObjArray.sort(compareSchedObj);
+resultObjArray.sort(compareResultObj);
 
-for (thisResult in schedObjArray) {
-	curResult = schedObjArray[thisResult];
+for (thisResult in resultObjArray) {
+	curResult = resultObjArray[thisResult];
 	if (!curResult.capIdString.equals(resultCapIdStringSave)) {
 		var capId = curResult.capId
-		
-		aa.env.setValue("PermitId1",capId.getID1());
-    	aa.env.setValue("PermitId2",capId.getID2());
-    	aa.env.setValue("PermitId3",capId.getID3());
-    
+
+			aa.env.setValue("PermitId1", capId.getID1());
+		aa.env.setValue("PermitId2", capId.getID2());
+		aa.env.setValue("PermitId3", capId.getID3());
+
 		if (SA) {
 			eval(getScriptText("INCLUDES_ACCELA_GLOBALS", SA));
 		} else {
-			eval(getScriptText("INCLUDES_ACCELA_GLOBALS",true));
+			eval(getScriptText("INCLUDES_ACCELA_GLOBALS"));
 		}
 
 		resultCapIdStringSave = capIDString;
@@ -158,73 +140,46 @@ for (thisResult in schedObjArray) {
 		logGlobals(AInfo);
 
 	}
-	//
-	// Event Specific Details
-	//
 
-	inspId = curResult.inspId;
-	inspInspector = curResult.inspector;
-	var inspInspectorObj = aa.person.getUser(inspInspector).getOutput();
-	if (inspInspectorObj) {
+	/*------------------------------------------------------------------------------------------------------/
+	| END Event Specific Variables
+	/------------------------------------------------------------------------------------------------------*/
 
-		var InspectorFirstName = inspInspectorObj.getFirstName();
-		var InspectorLastName = inspInspectorObj.getLastName();
-		var InspectorMiddleName = inspInspectorObj.getMiddleName();
-	} else {
-		var InspectorFirstName = null;
-		var InspectorLastName = null;
-		var InspectorMiddleName = null;
-	}
-
-	var inspSchedDate = InspectionDate = curResult.date;
-	var inspSchedTime = curResult.time;
-	var inspAMPM = curResult.AMPM;
-	var inspParent = curResult.parent;
-	var inspObj = curResult.inspObj;
-	
-	var inspGroup = null;
-	var inspType = null;
-	if(inspObj){
-		inspGroup = curResult.inspObj.getInspection().getInspectionGroup();
-		inspType = curResult.inspObj.getInspectionType();
-	}
-	var inspTime = curResult.time;
-	
-	// backward compatibility
-	var InspectionTime = inspTime;
-	var InspectionType = inspType;
-	var InspectionGroup = inspGroup;
-
-	
-	logDebug("Inspection #" + thisResult);
-	logDebug("inspId = " + inspId);
-	if(String(inspId) == "-1"){
-		logDebug("**WARNING: InspecitonMultipleBefore does not populate inspection type information with FID 8502 disabled");
-	}
-	
-	if(inspObj){
-		logDebug("inspObj = " + inspObj.getClass());
-	}
-	logDebug("inspGroup = " + inspGroup);
-	logDebug("inspType = " + inspType);
-	logDebug("inspInspector = " + inspInspector);
-	logDebug("InspectorFirstName = " + InspectorFirstName);
-	logDebug("InspectorMiddleName = " + InspectorMiddleName);
-	logDebug("InspectorLastName = " + InspectorLastName);
-	logDebug("inspSchedDate = " + inspSchedDate);
-	logDebug("inspSchedTime = " + inspSchedTime);
-	logDebug("inspAMPM = " + inspAMPM);
-	logDebug("inspTime = " + inspTime);
-	logDebug("inspParent = " + inspParent);
-
-	var prefix = lookup("EMSE_VARIABLE_BRANCH_PREFIX", vEventName);
-	
 	if (preExecute.length)
 		doStandardChoiceActions(preExecute, true, 0); // run Pre-execution code
 
+	logGlobals(AInfo);
+
+	/*------------------------------------------------------------------------------------------------------/
+	| <===========Main=Loop================>
+	|
+	/-----------------------------------------------------------------------------------------------------*/
+	//
+	//  Get the Standard choices entry we'll use for this App type
+	//  Then, get the action/criteria pairs for this app
+	//
+	inspId = curResult.inspId;
+	inspResult = curResult.inspResult;
+	inspType = curResult.inspType;
+	inspObj = aa.inspection.getInspection(capId, inspId).getOutput(); // current inspection object
+	inspComment = curResult.resultComment;
+	inspGroup = inspObj.getInspection().getInspectionGroup();
+	inspSchedDate = inspObj.getScheduledDate().getMonth() + "/" + inspObj.getScheduledDate().getDayOfMonth() + "/" + inspObj.getScheduledDate().getYear();
+	inspResultDate = inspObj.getInspectionStatusDate().getMonth() + "/" + inspObj.getInspectionStatusDate().getDayOfMonth() + "/" + inspObj.getInspectionStatusDate().getYear();
+	inspTotalTime = inspObj.getTimeTotal();
+	logDebug("Inspection #" + thisResult);
+	logDebug("inspId " + inspId);
+	logDebug("inspResult = " + inspResult);
+	logDebug("inspComment = " + inspComment);
+	logDebug("inspResultDate = " + inspResultDate);
+	logDebug("inspGroup = " + inspGroup);
+	logDebug("inspType = " + inspType);
+	logDebug("inspSchedDate = " + inspSchedDate);
+	logDebug("inspTotalTime = " + inspTotalTime);
+
 	if (doStdChoices)
 		doStandardChoiceActions(controlString, true, 0);
-
+	//  Next, execute and scripts that are associated to the record type
 	if (doScripts)
 		doScriptActions();
 
@@ -234,17 +189,12 @@ for (thisResult in schedObjArray) {
 	if (feeSeqList.length) {
 		invoiceResult = aa.finance.createInvoice(capId, feeSeqList, paymentPeriodList);
 		if (invoiceResult.getSuccess())
-			logDebug("Invoicing assessed fee items is successful.");
+			logMessage("Invoicing assessed fee items is successful.");
 		else
-			logDebug("**ERROR: Invoicing the fee items assessed to app # " + capIDString + " was not successful.  Reason: " + invoiceResult.getErrorMessage());
+			logMessage("**ERROR: Invoicing the fee items assessed to app # " + capIDString + " was not successful.  Reason: " + invoiceResult.getErrorMessage());
 	}
 
 }
-
-/*------------------------------------------------------------------------------------------------------/
-| END Event Specific Variables
-/------------------------------------------------------------------------------------------------------*/
-
 /*------------------------------------------------------------------------------------------------------/
 | <===========END=Main=Loop================>
 /-----------------------------------------------------------------------------------------------------*/
@@ -268,22 +218,19 @@ if (debug.indexOf("**ERROR") > 0) {
 	}
 }
 
+/*------------------------------------------------------------------------------------------------------/
+| <===========External Functions (used by Action entries)
+/------------------------------------------------------------------------------------------------------*/
 
-
-
-
-function schedObj() {
+function resultObj() {
 	this.capId = null;
 	this.capIdString = null;
-	this.inspector = null;
+	this.inspType = null;
+	this.inspResult = null;
 	this.inspId = null;
-	this.time = null;
-	this.date = null;
-	this.parent = null;
-	this.AMPM = null;
-	this.inspObj = null;
+	this.resultComment = null;
 }
 
-function compareSchedObj(a, b) {
+function compareResultObj(a, b) {
 	return (a.capIdString < b.capIdString);
 }

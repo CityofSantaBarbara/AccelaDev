@@ -1,5 +1,5 @@
 /*------------------------------------------------------------------------------------------------------/
-| Program : .js
+| Program : InspectionMultipleScheduleBefore3.0.js
 | Event   : InspectionMultipleScheduleBefore
 |
 | Usage   : Master Script by Accela.  See accompanying documentation and release notes.
@@ -21,6 +21,7 @@
 var controlString = "InspectionScheduleBefore"; // Standard choice for control
 var preExecute = "PreExecuteForAfterEvents"; // Standard choice to execute first (for globals, etc)
 var documentOnly = false; // Document Only -- displays hierarchy of std choice steps
+
 /*------------------------------------------------------------------------------------------------------/
 | END User Configurable Parameters
 /------------------------------------------------------------------------------------------------------*/
@@ -44,8 +45,8 @@ if (SA) {
 	eval(getScriptText("INCLUDES_ACCELA_GLOBALS", SA));
 	eval(getScriptText(SAScript, SA));
 } else {
-	eval(getScriptText("INCLUDES_ACCELA_FUNCTIONS",null,true));
-	eval(getScriptText("INCLUDES_ACCELA_GLOBALS",null,true));
+	eval(getScriptText("INCLUDES_ACCELA_FUNCTIONS"));
+	eval(getScriptText("INCLUDES_ACCELA_GLOBALS"));
 }
 
 eval(getScriptText("INCLUDES_CUSTOM",null,useCustomScriptFile));
@@ -100,7 +101,6 @@ var s_id2 = aa.env.getValue("PermitID2Array");
 var s_id3 = aa.env.getValue("PermitID3Array");
 var inspIdArr = aa.env.getValue("InspectionIDArray");
 var inspInspArr = aa.env.getValue("InspectionInspectorArray");
-var NumberOfInspections = inspInspArr.length;
 var inspAMPMArray = aa.env.getValue("InspectionAMPMArray");
 var inspEndAMPMArray = aa.env.getValue("InspectionEndAMPMArray");
 var inspDateArray = aa.env.getValue("InspectionDateArray");
@@ -108,7 +108,6 @@ var inspEndTimeArray  = aa.env.getValue("InspectionEndTimeArray");
 var inspTimeArray = aa.env.getValue("InspectionTimeArray");
 var parentInspIDArray = aa.env.getValue("ParentInspectionIDArray");
 var inspInspArr = aa.env.getValue("InspectionInspectorArray");
-var InspectionMode = "";  //added because ISB is evaluating this variable
 
 var resultCapIdStringSave = null;
 
@@ -117,9 +116,8 @@ for (thisElement in s_id1) {
 	var s_capResult = aa.cap.getCapID(s_id1[thisElement], s_id2[thisElement], s_id3[thisElement]);
 	if (s_capResult.getSuccess())
 		r.capId = s_capResult.getOutput();
-	else{
+	else
 		logDebug("**ERROR: Failed to get capId: " + s_capResult.getErrorMessage());
-	}
 	r.capIdString = r.capId.getCustomID();
 	r.inspId = inspIdArr[thisElement];
 	r.inspector = inspInspArr[thisElement];
@@ -127,12 +125,7 @@ for (thisElement in s_id1) {
 	r.date = inspDateArray[thisElement];
 	r.AMPM = inspAMPMArray[thisElement];
 	r.parent = parentInspIDArray[thisElement];
-	if(r.inspId == "-1"){
-		r.inspObj = null;
-	}
-	else{
-		r.inspObj =  aa.inspection.getInspection(r.capId,r.inspId).getOutput();
-	}	
+	r.inspObj = aa.inspection.getInspection(r.capId,r.inspId).getOutput();
 	schedObjArray.push(r);
 }
 
@@ -150,7 +143,7 @@ for (thisResult in schedObjArray) {
 		if (SA) {
 			eval(getScriptText("INCLUDES_ACCELA_GLOBALS", SA));
 		} else {
-			eval(getScriptText("INCLUDES_ACCELA_GLOBALS",true));
+			eval(getScriptText("INCLUDES_ACCELA_GLOBALS"));
 		}
 
 		resultCapIdStringSave = capIDString;
@@ -176,18 +169,13 @@ for (thisResult in schedObjArray) {
 		var InspectorMiddleName = null;
 	}
 
-	var inspSchedDate = InspectionDate = curResult.date;
+	var inspSchedDate = curResult.date;
 	var inspSchedTime = curResult.time;
 	var inspAMPM = curResult.AMPM;
 	var inspParent = curResult.parent;
 	var inspObj = curResult.inspObj;
-	
-	var inspGroup = null;
-	var inspType = null;
-	if(inspObj){
-		inspGroup = curResult.inspObj.getInspection().getInspectionGroup();
-		inspType = curResult.inspObj.getInspectionType();
-	}
+	var inspGroup = curResult.inspObj.getInspection().getInspectionGroup();
+	var inspType = curResult.inspObj.getInspectionType();
 	var inspTime = curResult.time;
 	
 	// backward compatibility
@@ -198,13 +186,7 @@ for (thisResult in schedObjArray) {
 	
 	logDebug("Inspection #" + thisResult);
 	logDebug("inspId = " + inspId);
-	if(String(inspId) == "-1"){
-		logDebug("**WARNING: InspecitonMultipleBefore does not populate inspection type information with FID 8502 disabled");
-	}
-	
-	if(inspObj){
-		logDebug("inspObj = " + inspObj.getClass());
-	}
+	logDebug("inspObj = " + inspObj.getClass());
 	logDebug("inspGroup = " + inspGroup);
 	logDebug("inspType = " + inspType);
 	logDebug("inspInspector = " + inspInspector);
@@ -267,10 +249,6 @@ if (debug.indexOf("**ERROR") > 0) {
 			aa.env.setValue("ScriptReturnMessage", debug);
 	}
 }
-
-
-
-
 
 function schedObj() {
 	this.capId = null;

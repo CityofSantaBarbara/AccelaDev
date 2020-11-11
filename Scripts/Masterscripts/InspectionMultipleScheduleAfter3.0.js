@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------------/
-| Program : .js
-| Event   : InspectionMultipleScheduleBefore
+| Program : InspectionMultipleScheduleAfter3.0.js
+| Event   : InspectionMultipleScheduleAfter
 |
 | Usage   : Master Script by Accela.  See accompanying documentation and release notes.
 |
@@ -18,14 +18,15 @@
 |     will no longer be considered a "Master" script and will not be supported in future releases.  If
 |     changes are made, please add notes above.
 /------------------------------------------------------------------------------------------------------*/
-var controlString = "InspectionScheduleBefore"; // Standard choice for control
+var controlString = "InspectionScheduleAfter"; // Standard choice for control
 var preExecute = "PreExecuteForAfterEvents"; // Standard choice to execute first (for globals, etc)
 var documentOnly = false; // Document Only -- displays hierarchy of std choice steps
+
 /*------------------------------------------------------------------------------------------------------/
 | END User Configurable Parameters
 /------------------------------------------------------------------------------------------------------*/
 var SCRIPT_VERSION = 3.0;
-var useCustomScriptFile = true;  // if true, use Events->Custom Script, else use Events->Scripts->INCLUDES_CUSTOM
+
 var useSA = false;
 var SA = null;
 var SAScript = null;
@@ -44,11 +45,11 @@ if (SA) {
 	eval(getScriptText("INCLUDES_ACCELA_GLOBALS", SA));
 	eval(getScriptText(SAScript, SA));
 } else {
-	eval(getScriptText("INCLUDES_ACCELA_FUNCTIONS",null,true));
-	eval(getScriptText("INCLUDES_ACCELA_GLOBALS",null,true));
+	eval(getScriptText("INCLUDES_ACCELA_FUNCTIONS"));
+	eval(getScriptText("INCLUDES_ACCELA_GLOBALS"));
 }
 
-eval(getScriptText("INCLUDES_CUSTOM",null,useCustomScriptFile));
+eval(getScriptText("INCLUDES_CUSTOM"));
 
 if (documentOnly) {
 	doStandardChoiceActions(controlString, false, 0);
@@ -56,8 +57,6 @@ if (documentOnly) {
 	aa.env.setValue("ScriptReturnMessage", "Documentation Successful.  No actions executed.");
 	aa.abortScript();
 }
-
-var prefix = lookup("EMSE_VARIABLE_BRANCH_PREFIX", vEventName);
 
 var controlFlagStdChoice = "EMSE_EXECUTE_OPTIONS";
 var doStdChoices = true; // compatibility default
@@ -70,21 +69,21 @@ if (bzr) {
 	doScripts = bvr1.getSuccess() && bvr1.getOutput().getAuditStatus() != "I";
 }
 
-function getScriptText(vScriptName, servProvCode, useProductScripts) {
-	if (!servProvCode)  servProvCode = aa.getServiceProviderCode();
+function getScriptText(vScriptName) {
+	var servProvCode = aa.getServiceProviderCode();
+	if (arguments.length > 1) {
+		servProvCode = arguments[1]; // use different serv prov code
+	}
 	vScriptName = vScriptName.toUpperCase();
 	var emseBiz = aa.proxyInvoker.newInstance("com.accela.aa.emse.emse.EMSEBusiness").getOutput();
 	try {
-		if (useProductScripts) {
-			var emseScript = emseBiz.getMasterScript(aa.getServiceProviderCode(), vScriptName);
-		} else {
-			var emseScript = emseBiz.getScriptByPK(aa.getServiceProviderCode(), vScriptName, "ADMIN");
-		}
+		var emseScript = emseBiz.getScriptByPK(servProvCode, vScriptName, "ADMIN");
 		return emseScript.getScriptText() + "";
 	} catch (err) {
 		return "";
 	}
 }
+
 /*------------------------------------------------------------------------------------------------------/
 | BEGIN Event Specific Variables
 /------------------------------------------------------------------------------------------------------*/
@@ -100,15 +99,6 @@ var s_id2 = aa.env.getValue("PermitID2Array");
 var s_id3 = aa.env.getValue("PermitID3Array");
 var inspIdArr = aa.env.getValue("InspectionIDArray");
 var inspInspArr = aa.env.getValue("InspectionInspectorArray");
-var NumberOfInspections = inspInspArr.length;
-var inspAMPMArray = aa.env.getValue("InspectionAMPMArray");
-var inspEndAMPMArray = aa.env.getValue("InspectionEndAMPMArray");
-var inspDateArray = aa.env.getValue("InspectionDateArray");
-var inspEndTimeArray  = aa.env.getValue("InspectionEndTimeArray");
-var inspTimeArray = aa.env.getValue("InspectionTimeArray");
-var parentInspIDArray = aa.env.getValue("ParentInspectionIDArray");
-var inspInspArr = aa.env.getValue("InspectionInspectorArray");
-var InspectionMode = "";  //added because ISB is evaluating this variable
 
 var resultCapIdStringSave = null;
 
@@ -117,22 +107,12 @@ for (thisElement in s_id1) {
 	var s_capResult = aa.cap.getCapID(s_id1[thisElement], s_id2[thisElement], s_id3[thisElement]);
 	if (s_capResult.getSuccess())
 		r.capId = s_capResult.getOutput();
-	else{
+	else
 		logDebug("**ERROR: Failed to get capId: " + s_capResult.getErrorMessage());
-	}
 	r.capIdString = r.capId.getCustomID();
 	r.inspId = inspIdArr[thisElement];
 	r.inspector = inspInspArr[thisElement];
-	r.time = inspTimeArray[thisElement];
-	r.date = inspDateArray[thisElement];
-	r.AMPM = inspAMPMArray[thisElement];
-	r.parent = parentInspIDArray[thisElement];
-	if(r.inspId == "-1"){
-		r.inspObj = null;
-	}
-	else{
-		r.inspObj =  aa.inspection.getInspection(r.capId,r.inspId).getOutput();
-	}	
+
 	schedObjArray.push(r);
 }
 
@@ -150,7 +130,7 @@ for (thisResult in schedObjArray) {
 		if (SA) {
 			eval(getScriptText("INCLUDES_ACCELA_GLOBALS", SA));
 		} else {
-			eval(getScriptText("INCLUDES_ACCELA_GLOBALS",true));
+			eval(getScriptText("INCLUDES_ACCELA_GLOBALS"));
 		}
 
 		resultCapIdStringSave = capIDString;
@@ -176,46 +156,24 @@ for (thisResult in schedObjArray) {
 		var InspectorMiddleName = null;
 	}
 
-	var inspSchedDate = InspectionDate = curResult.date;
-	var inspSchedTime = curResult.time;
-	var inspAMPM = curResult.AMPM;
-	var inspParent = curResult.parent;
-	var inspObj = curResult.inspObj;
-	
-	var inspGroup = null;
-	var inspType = null;
-	if(inspObj){
-		inspGroup = curResult.inspObj.getInspection().getInspectionGroup();
-		inspType = curResult.inspObj.getInspectionType();
-	}
-	var inspTime = curResult.time;
-	
-	// backward compatibility
-	var InspectionTime = inspTime;
-	var InspectionType = inspType;
-	var InspectionGroup = inspGroup;
+	inspObj = aa.inspection.getInspection(capId, inspId).getOutput(); // current inspection object
+	inspGroup = inspObj.getInspection().getInspectionGroup();
 
-	
+	if (inspObj.getScheduledDate())
+		inspSchedDate = inspObj.getScheduledDate().getMonth() + "/" + inspObj.getScheduledDate().getDayOfMonth() + "/" + inspObj.getScheduledDate().getYear();
+	else
+		inspSchedDate = null;
+
+	inspType = inspObj.getInspectionType();
 	logDebug("Inspection #" + thisResult);
-	logDebug("inspId = " + inspId);
-	if(String(inspId) == "-1"){
-		logDebug("**WARNING: InspecitonMultipleBefore does not populate inspection type information with FID 8502 disabled");
-	}
-	
-	if(inspObj){
-		logDebug("inspObj = " + inspObj.getClass());
-	}
-	logDebug("inspGroup = " + inspGroup);
-	logDebug("inspType = " + inspType);
+	logDebug("inspId " + inspId);
 	logDebug("inspInspector = " + inspInspector);
 	logDebug("InspectorFirstName = " + InspectorFirstName);
 	logDebug("InspectorMiddleName = " + InspectorMiddleName);
 	logDebug("InspectorLastName = " + InspectorLastName);
+	logDebug("inspGroup = " + inspGroup);
+	logDebug("inspType = " + inspType);
 	logDebug("inspSchedDate = " + inspSchedDate);
-	logDebug("inspSchedTime = " + inspSchedTime);
-	logDebug("inspAMPM = " + inspAMPM);
-	logDebug("inspTime = " + inspTime);
-	logDebug("inspParent = " + inspParent);
 
 	var prefix = lookup("EMSE_VARIABLE_BRANCH_PREFIX", vEventName);
 	
@@ -253,35 +211,18 @@ if (debug.indexOf("**ERROR") > 0) {
 	aa.env.setValue("ScriptReturnCode", "1");
 	aa.env.setValue("ScriptReturnMessage", debug);
 } else {
-	if (cancel) {
-		aa.env.setValue("ScriptReturnCode", "1");
-		if (showMessage)
-			aa.env.setValue("ScriptReturnMessage", "<font color=red><b>Action Cancelled</b></font><br><br>" + message);
-		if (showDebug)
-			aa.env.setValue("ScriptReturnMessage", "<font color=red><b>Action Cancelled</b></font><br><br>" + debug);
-	} else {
-		aa.env.setValue("ScriptReturnCode", "0");
-		if (showMessage)
-			aa.env.setValue("ScriptReturnMessage", message);
-		if (showDebug)
-			aa.env.setValue("ScriptReturnMessage", debug);
-	}
+	aa.env.setValue("ScriptReturnCode", "0");
+	if (showMessage)
+		aa.env.setValue("ScriptReturnMessage", message);
+	if (showDebug)
+		aa.env.setValue("ScriptReturnMessage", debug);
 }
-
-
-
-
 
 function schedObj() {
 	this.capId = null;
 	this.capIdString = null;
 	this.inspector = null;
 	this.inspId = null;
-	this.time = null;
-	this.date = null;
-	this.parent = null;
-	this.AMPM = null;
-	this.inspObj = null;
 }
 
 function compareSchedObj(a, b) {
