@@ -1,16 +1,16 @@
 var asiFieldandValue = "";
 var lookupValue = null;
 
-if (publicUser && (balanceDue <= 0)) {
+if (publicUser) {
 	lookupValue = "publicUser";
 	logDebug("the lookup is:"+lookupValue);
-	asiFieldandValue = "" + lookup("PLN_APPLICATION_LIST_PRA", lookupValue);
+	asiFieldandValue = "" + lookupOnlyActive("PLN_APPLICATION_LIST_PRA", lookupValue);
 	logDebug("the asiFieldandValue is:"+asiFieldandValue);
 }
-else if (!(publicUser) && (balanceDue <= 0)) {
+else {
 	lookupValue = "backOffice";
 	logDebug("the lookup is:"+lookupValue);
-	asiFieldandValue = "" + lookup("PLN_APPLICATION_LIST_PRA", lookupValue);
+	asiFieldandValue = "" + lookupOnlyActive("PLN_APPLICATION_LIST_PRA", lookupValue);
 	logDebug("the asiFieldandValue is:"+asiFieldandValue);
 }
 
