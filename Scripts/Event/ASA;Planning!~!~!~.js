@@ -10,22 +10,39 @@
 // ********************************************************************************************************
 // Change Log
 //         	Date		Name			Modification
-//			10-17-2019		Chad			Original
+//		10-17-2019	Chad			Original
+//		02/05/2021	Chad			Added new logic for Planning Application list mgt
 // ********************************************************************************************************
 logDebug("Start of ASA:Planning/*/*/*");
 var asiFieldandValue = "";
 var lookupValue = null;
 
 if (publicUser) {
+	docListResult = aa.document.getCapDocumentList(capId ,currentUserID);
+	var docWasUploaded = false;
+	if (docListResult.getSuccess()) {
+		docListArray = docListResult.getOutput();
+		varDocLast = docListArray.length;
+		if ( varDocLast > 0 ) {
+			docWasUploaded =true;
+		}
+	}
 	lookupValue = "publicUser";
+
+	if (docWasUploaded) {
+		lookupValue = "DocUploadedPubUser";
+	}
+
 	logDebug("the lookup is:"+lookupValue);
-	asiFieldandValue = "" + lookup("PLN_APPLICATION_LIST_ASA", lookupValue);
+	asiFieldandValue = "" + lookupOnlyActive("PLN_APPLICATION_LIST_ASA", lookupValue);
 	logDebug("the asiFieldandValue is:"+asiFieldandValue);
+	
+
 }
 else {
 	lookupValue = "backOffice";
 	logDebug("the lookup is:"+lookupValue);
-	asiFieldandValue = "" + lookup("PLN_APPLICATION_LIST_ASA", lookupValue);
+	asiFieldandValue = "" + lookupOnlyActive("PLN_APPLICATION_LIST_ASA", lookupValue);
 	logDebug("the asiFieldandValue is:"+asiFieldandValue);
 }
 
@@ -37,4 +54,5 @@ if (asiFieldandValue.indexOf("::") > -1 ) {
 	logDebug("the asi Value is:"+asiVal);
 	editAppSpecific(asiField,asiVal);
 } 
-else logDebug("look up not found!");logDebug("End of ASA:Planning/*/*/*");
+else logDebug("look up not found!");
+logDebug("End of ASA:Planning/*/*/*");
