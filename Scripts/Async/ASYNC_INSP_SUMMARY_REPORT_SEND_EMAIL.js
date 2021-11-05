@@ -4,7 +4,7 @@
     var reportFiles = new Array();
 
     aa.print("Email: " + paEmail);
-    var emailFrom = "SBCityLDT_Test@santabarbaraca.gov";
+    var emailFrom = "AccelaDev@santabarbaraca.gov";
     var emailTo = paEmail;
     var emailCC = "";
     var emailTemplate = "BLD_PERMIT_FINAL_INSPECTION_APP_ASSESSOR";
