@@ -1,14 +1,14 @@
-//WTUA;BUILDING!OVER THE COUNTER!WATER HEATER!NA.js
-//WTUA:BUILDING/OVER THE COUNTER/WATER HEATER/NA
+//WTUA;BUILDING!OVER THE COUNTER!HVAC!NA.js
+//WTUA:BUILDING/OVER THE COUNTER/HVAC/NA
 //Added by Gray Quarter
-//Start - New On Demand WATER HEATER record for ACA
+//Start - New On Demand HVAC record for ACA
 
 if (wfTask == "Permit Issuance" && wfStatus == "Issued") {
   //runReportAsyncAttach(capId, "On Demand Permit Record","PermitNum",capId.getCustomID());
-  runAsyncEvent("ASYNC_ONDEMAND_UNDERGROUND_GAS_SEND_EMAIL",capIDString,currentUserID);
+  runAsyncEvent("ASYNC_ONDEMAND_HVAC_SEND_EMAIL",capIDString,currentUserID);
 }
 
-//END - New On Demand WATER HEATER record for ACA
+//END - New On Demand HVAC record for ACA
 if (wfTask == "Inspection" && wfStatus == "Final Inspection Complete") {
   runAsyncEvent("ASYNC_INSP_SUMMARY_REPORT_SEND_EMAIL",capIDString,currentUserID);
 }

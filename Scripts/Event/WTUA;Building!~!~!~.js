@@ -42,7 +42,7 @@ include("5074_Building_WF_Accept_Plans_Withdrawn");
 
 if (wfTask == "Permit Issuance" && wfStatus == "Issued") {
 	var tasksToCheck = [ "Mechanical Plan Review", "Electrical Plan Review", "Plumbing Plan Review", "Structural Plan Review" ];
-	createAutoInspection(tasksToCheck);
+	//createAutoInspection(tasksToCheck);
 }
 
 // Script #205
@@ -140,13 +140,18 @@ eval(getScriptText("INCLUDES_CRM", null, false));
 				if (AInfo["Plan Review Distribution Count"] == "8") {
                     addParameter(reportParameters, "Condition_Type", "Review 8");
                 }
+				logDebug("in the report template if statement" + reportParameters);
                 //
                 var rptFile = generateReport4Save(capId, reportTemplate, "Building", reportParameters)
 				var fromEmail = lookup("SCRIPT_EMAIL_FROM", "AGENCY_FROM");
                 var ccEmail = ""; //blank for now
+				var count = (parseInt(AInfo["Plan Review Distribution Count"],10) + 1).toFixed(0);
                 var emailParameters = aa.util.newHashtable();
 				addParameter(emailParameters, "$$altID$$", cap.getCapModel().getAltID());
                 addParameter(emailParameters, "$$recordAlias$$", cap.getCapType().getAlias());
+				addParameter(emailParameters, "$$Submittal$$", AInfo["Plan Review Distribution Count"]);
+				addParameter(emailParameters, "$$submittalCount$$", count);
+				logDebug("in the Email parameters if statement" + emailParameters);
                 var emailTemplate = "BLD PLAN CHECK CORRECTIONS";
                 var capId4Email = aa.cap.createCapIDScriptModel(capId.getID1(), capId.getID2(), capId.getID3());
                 var fileNames = [];
@@ -154,7 +159,7 @@ eval(getScriptText("INCLUDES_CRM", null, false));
                     fileNames.push(String(rptFile));
                 }
                 conEmailStr = toEmail.join(";");
-                ccEmailStr = toEmail.join(";");
+                ccEmailStr = ccEmail;
                 aa.document.sendEmailAndSaveAsDocument(fromEmail, conEmailStr, ccEmailStr, emailTemplate, emailParameters, capId4Email, fileNames);
                 logDebug( ": Sent Email template " + emailTemplate + " To Contacts " + conEmailStr);
             }
@@ -169,9 +174,10 @@ if (wfTask == "Permit Issuance" && wfStatus == "Issued") {
 		//Get Report and Report Parameters
               
 	        var fromEmail = lookup("SCRIPT_EMAIL_FROM", "AGENCY_FROM");
-                var toEmail = "larry@grayquarter.com";
-                var ccEmail = ""; //blank for now
-                var theURL = "https://landuse-dt.santabarbaraca.gov/CitizenAccessDev";
+            var toEmail = "Jason@grayquarter.com";
+            var ccEmail = ""; //blank for now
+            //var ccEmail = "CDRecords@SantaBarbaraCA.gov"; //blank for now
+                var theURL = "https://landuse-dt.santabarbaraca.gov/CitizenAccessTrain";
                 var emailParameters = aa.util.newHashtable();
 	        addParameter(emailParameters, "$$altID$$", cap.getCapModel().getAltID());
                 addParameter(emailParameters, "$$recordAlias$$", cap.getCapType().getAlias());
@@ -185,16 +191,21 @@ if (wfTask == "Permit Issuance" && wfStatus == "Issued") {
                 logDebug( ": Sent Email template " + emailTemplate + " To Contacts ");
 }
 
+if (!appMatch('Building/Over the Counter/*/*') && wfTask == "Inspection" && wfStatus == "Final Inspection Complete") {
+    runAsyncEvent("ASYNC_INSP_SUMMARY_REPORT_SEND_EMAIL",capIDString,currentUserID);
+  }
+/*
 if (wfTask == "Inspection" && wfStatus == "Final Inspection Complete") {
                logDebug("County Assessor email");
 	       //Get Report and Report Parameters
               
 	        var fromEmail = lookup("SCRIPT_EMAIL_FROM", "AGENCY_FROM");
-                var toEmail = "larry@grayquarter.com";
+                var toEmail = "Jason@grayquarter.com";
                 var ccEmail = ""; //blank for now
-                var theURL = "https://landuse-dt.santabarbaraca.gov/CitizenAccessDev";
+                //var ccEmail = "CDRecords@SantaBarbaraCA.gov"; //blank for now
+                var theURL = "https://landuse-dt.santabarbaraca.gov/CitizenAccessTrain";
                 var emailParameters = aa.util.newHashtable();
-		addParameter(emailParameters, "$$altID$$", cap.getCapModel().getAltID());
+		        addParameter(emailParameters, "$$altID$$", cap.getCapModel().getAltID());
                 addParameter(emailParameters, "$$recordAlias$$", cap.getCapType().getAlias());
                 addParameter(emailParameters, "$$acaRecordUrl$$", getACARecordURL(theURL));
 
@@ -204,6 +215,28 @@ if (wfTask == "Inspection" && wfStatus == "Final Inspection Complete") {
                
                 aa.document.sendEmailAndSaveAsDocument(fromEmail, toEmail, ccEmail, emailTemplate, emailParameters, capId4Email, fileNames);
                 logDebug( ": Sent Email template " + emailTemplate + " To Contacts ");
+}
+*/
+if (wfTask == "Inspection" && wfStatus == "Permit Expired") {
+    logDebug("County Assessor email");
+//Get Report and Report Parameters
+   
+ var fromEmail = lookup("SCRIPT_EMAIL_FROM", "AGENCY_FROM");
+     var toEmail = "Jason@grayquarter.com";
+     var ccEmail = ""; //blank for now
+     //var ccEmail = "CDRecords@SantaBarbaraCA.gov"; //blank for now
+     var theURL = "https://landuse-dt.santabarbaraca.gov/CitizenAccessTrain";
+     var emailParameters = aa.util.newHashtable();
+     addParameter(emailParameters, "$$altID$$", cap.getCapModel().getAltID());
+     addParameter(emailParameters, "$$recordAlias$$", cap.getCapType().getAlias());
+     addParameter(emailParameters, "$$acaRecordUrl$$", getACARecordURL(theURL));
+
+     var emailTemplate = "BLD_PERMIT_EXPIRED_APP_ASSESSOR";
+     var capId4Email = aa.cap.createCapIDScriptModel(capId.getID1(), capId.getID2(), capId.getID3());
+     var fileNames = [];
+    
+     aa.document.sendEmailAndSaveAsDocument(fromEmail, toEmail, ccEmail, emailTemplate, emailParameters, capId4Email, fileNames);
+     logDebug( ": Sent Email template " + emailTemplate + " To Contacts ");
 }
 
 function generateReportForASyncEmail(itemCap, reportName, module, parameters) {
@@ -278,3 +311,4 @@ function generateReport4Save(itemCap, reportName, module, parameters) {
 }
 
 //END Santa Barbara Sharepoint #266	
+
