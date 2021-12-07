@@ -40,6 +40,6 @@ if (thisExpModelList.getSuccess()) {
 }
 
 // added by Gray Quarter for Issue 40
-if (!appMatch("Building/*/*/*"))	{
+if (!appMatch("Building/*/*/*")){
 handleFinalInspectionMap(capId);
-	}
+}
