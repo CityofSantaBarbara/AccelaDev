@@ -1,10 +1,10 @@
 //********************************************************************************************************
-//Inspection Result Submit After for OnDemand Records.
-//Created By: Gray Quarter Inc. 6/8/21
+//Inspection Result Submit After 
+//Created By: Gray Quarter Inc. 12/7/21
 //********************************************************************************************************
 
-//GQ - Zen Desk Ticket #1728
-logDebug("start of IRSA;BUILDING!OVER THE COUNTER!~!~");
+
+logDebug("start of IRSA;BUILDING!~!~!~");
 
 if ((inspType == "Building Final - Not Occupied" 
 	|| inspType == "Final Occupancy")
@@ -94,6 +94,6 @@ if ((inspType == "Building Final - Not Occupied"
 
 }
 	logDebug("Criteria met at inspection type of " + inspType);
-logDebug("end of IRSA;BUILDING!OVER THE COUNTER!~!~");
+    logDebug("end of IRSA;BUILDING!~!~!~");
 
 
