@@ -23,7 +23,7 @@ if ((inspType == "Building Final - Not Occupied"
     var reportFiles = new Array();
 
     aa.print("Email: " + paEmail);
-    var emailFrom = "SBCityLDT_TRAIN@santabarbaraca.gov";
+    var emailFrom = "AccelaDev@santabarbaraca.gov";
     var emailTo = paEmail;
     var emailCC = "";
     //var emailCC = "CDRecords@SantaBarbaraCA.gov";
