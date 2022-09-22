@@ -1,3 +1,4 @@
+
 function handleFeeInvoiceNotificationEmail()
 {
 	var toEmail = "";
@@ -45,7 +46,8 @@ function handleFeeInvoiceNotificationEmail()
 			var myInvDataArr = myInvDataGet.getOutput();
 			for (invFee in myInvDataArr) {
 				var thisFeeStatus = myInvDataArr[invFee].getFeeitemStatus();
-				if ( thisFeeStatus == 'INVOICED' ) {
+				var thisFeeSchedule = myInvDataArr[invFee].getFeeSchedule();
+				if ( thisFeeStatus == 'INVOICED' && thisFeeSchedule != 'POS_GENERAL') {
 					sendMsg = true;
 				}
 			}
