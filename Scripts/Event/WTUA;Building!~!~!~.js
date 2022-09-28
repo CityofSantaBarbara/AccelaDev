@@ -239,6 +239,68 @@ if (wfTask == "Inspection" && wfStatus == "Permit Expired") {
      logDebug( ": Sent Email template " + emailTemplate + " To Contacts ");
 }
 
+//GQ Ticket 3545
+if (wfTask == "B-Structural" && wfStatus == "Routed to Reviewer") {
+    logDebug("BLD External Plan Reviewer Notification");
+//Get Report and Report Parameters
+   
+ var fromEmail = lookup("SCRIPT_EMAIL_FROM", "AGENCY_FROM");
+     var toEmail = "";
+     var ccEmail = ""; //blank for now
+     var theURL = "https://landuse-dt.santabarbaraca.gov/CitizenAccessTrain";
+     var emailParameters = aa.util.newHashtable();
+        moeFound = false;
+        anitaFound = false;
+        samFound = false;
+        thisConEmail = "";
+        thisConFirstName = "";
+        conArray = getContactArray();
+        if (conArray && conArray.length > 0) {
+            for (var i=0; i<conArray.length;i++) {
+                thisContact = conArray[i];
+                conType = thisContact.contactType;
+                if (conType == "Applicant") {
+                    thisConFirstName = thisContact.firstName;
+                    thisConLastName = thisContact.lastName;
+                    if (thisConLastName == "Folman" && thisConFirstName == "Nicole")
+                        anitaFound = true;
+                    if (thisConLastName == "rutledge" && thisConFirstName == "raven")
+                        moeFound = true;
+                    if (thisConLastName == "Jackson" && thisConFirstName == "Jason")
+                        samFound = true;
+                    // if (thisConLastName == "Nounvilaythong" && thisConFirstName == "Anita")
+                    //     anitaFound = true;
+                    // if (thisConLastName == "Heivand" && thisConFirstName == "Moe")
+                    //     moeFound = true;
+                    // if (thisConLastName == "Phillips" && thisConFirstName == "Sam")
+                    //     samFound = true;
+                    thisConEmail = thisContact.email;
+                    if (moeFound || anitaFound || samFound) break;
+                }
+            }
+        }
+        if (moeFound || anitaFound || samFound) {
+            toEmail = thisConEmail;
+            // sub into email token if you want the name in the text of the email...
+            addParameter(emailParameters, "$$HelloName$$", thisConFirstName);
+        }
+
+     addParameter(emailParameters, "$$altID$$", cap.getCapModel().getAltID());
+     var someaddress = getAddressInALineLocal(capId);
+     addParameter(emailParameters, "$$addressLine$$", someaddress);
+     addParameter(emailParameters, "$$acaRecordUrl$$", getACARecordURL(theURL));
+     var count = AInfo["Plan Review Distribution Count"];
+     //var count = getAppSpecific("Plan Review Distribution Count");
+     addParameter(emailParameters, "$$submittalCount$$", count);
+
+     var emailTemplate = "BLD External Plan Reviewer Notification";
+     var capId4Email = aa.cap.createCapIDScriptModel(capId.getID1(), capId.getID2(), capId.getID3());
+     var fileNames = [];
+    
+     aa.document.sendEmailAndSaveAsDocument(fromEmail, toEmail, ccEmail, emailTemplate, emailParameters, capId4Email, fileNames);
+     logDebug( ": Sent Email template " + emailTemplate + " To Contacts ");
+}
+
 function generateReportForASyncEmail(itemCap, reportName, module, parameters) {
     //returns the report file which can be attached to an email.
     var vAltId;
