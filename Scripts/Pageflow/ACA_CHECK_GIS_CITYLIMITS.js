@@ -86,7 +86,7 @@ try {
     if (!cityLimits) {
         showMessage = true;
         cancel = true;
-        comment("The parcel you have selected in out of City Limits. Please contact the City for more information");
+        comment("The parcel you have selected is out of City Limits. Please contact the City for more information");
     }
 } catch (err) {
     //  cancel = true;
