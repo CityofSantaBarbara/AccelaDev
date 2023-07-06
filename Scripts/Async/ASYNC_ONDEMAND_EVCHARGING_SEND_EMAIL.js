@@ -26,7 +26,7 @@ if (capContactResult.getSuccess()) {
         //generate report
         var user = "ADMIN"; // Setting the User Name
         var reportNames = new Array();
-        reportNames.push(["On Demand Permit Record"]);
+        reportNames.push(["/On Demand Permit Record"]);
         
         for (var i in reportNames) {
           logDebug("running " + reportNames[i][0]);
