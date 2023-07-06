@@ -23,7 +23,7 @@ var toEmail = "jason@grayquarter.com";
 var ccEmail = "jason@grayquarter.com"; //blank for now
   //var toEmail = "citypermits@co.santa-barbara.ca.us";
   //var ccEmail = "CDRecords@SantaBarbaraCA.gov"; //blank for now
-    var theURL = "https://landuse.santabarbaraca.gov/CitizenAccess";
+  var theURL = "https://aca-NONPROD.accela.com/SANTABARBARA-NONPROD1";
     var emailParameters = aa.util.newHashtable();
 addParameter(emailParameters, "$$altID$$", cap.getCapModel().getAltID());
     addParameter(emailParameters, "$$recordAlias$$", cap.getCapType().getAlias());

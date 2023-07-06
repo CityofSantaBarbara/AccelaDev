@@ -13,7 +13,8 @@ if (capContactResult.getSuccess()) {
         var reportFiles = new Array();
 
         aa.print("Email: " + paEmail);
-        var emailFrom = "AccelaDev@santabarbaraca.gov";
+        //var emailFrom = "SBCityLDT_Test@SantaBarbaraCA.gov";
+        var emailFrom = lookup("SCRIPT_EMAIL_FROM", "AGENCY_FROM");
         var emailTo = paEmail;
         var emailCC = "";
         var emailTemplate = "BLD ON DEMAND PERMIT";
