@@ -24,11 +24,14 @@ if (publicUser) {
     logDebug(docLastDate);
     var string = docLastDate.toString();
     logDebug(string)
-    var parts = string.split(" ")[0].split("-"); // Extract date components
-    var year = parts[0];
-    var month = parts[1];
-    var day = parts[2];
-    var formattedDate = month + "/" + day + "/" + year;
+    //var parts = string.split(" ")[0].split("-"); // Extract date components
+    //var year = parts[0];
+    //var month = parts[1];
+    //var day = parts[2];
+    //var time = parts[3];
+    //var formattedDate = month + "/" + day + "/" + year + " " + time;
+    var inputDate = string
+    var formattedDate = convertDateFormat(inputDate);
     addParameter(emailParams, "$$UploadDate$$", formattedDate);
     logDebug(formattedDate);
     var attachments = [];
@@ -58,3 +61,19 @@ function getContactEmailByType(cId, contactType) {
     }
     return emailArray;
 }
+
+function convertDateFormat(inputDate) {
+    const regex = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2}\.\d+)$/;
+    const match = inputDate.match(regex);
+  
+    if (!match) {
+      throw new Error("Invalid date format");
+    }
+  
+    const [, year, month, day, hours, minutes, seconds] = match;
+  
+    const formattedDate =
+      month + "/" + day + "/" + year + " " + hours + ":" + minutes + ":" + seconds;
+  
+    return formattedDate;
+  }
