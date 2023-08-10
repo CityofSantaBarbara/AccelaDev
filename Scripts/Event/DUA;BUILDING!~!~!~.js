@@ -37,10 +37,11 @@ if (publicUser) {
 	varLastPos = varDocLast -1
 	docLastCat = docListArray[varLastPos].getDocCategory();
 	docLastDate = docListArray[varLastPos].getFileUpLoadDate();
-
     var docUploadDateJS = new Date(docLastDate.getTime());
-
-    var formattedDate = aa.util.formatDate(docUploadDateJS, "MM/dd/yyyy") + " " + docUploadDateJS.getHours() + ":" + docUploadDateJS.getMinutes() + ":" + docUploadDateJS.getSeconds() + "." + docUploadDateJS.getMilliseconds();
+    //var formattedDate = aa.util.formatDate(docUploadDateJS, "MM/dd/yyyy") + " " + docUploadDateJS.getHours() + ":" + docUploadDateJS.getMinutes() + ":" + docUploadDateJS.getSeconds() + "." + docUploadDateJS.getMilliseconds();
+    var docUploadDateJS = new Date(docLastDate.getTime());
+    var formattedDate = docUploadDateJS.toLocaleString();
+    formattedDate = formattedDate.substring(0, (formattedDate.length - 4));
     addParameter(emailParams, "$$UploadDate$$", formattedDate);
     logDebug(formattedDate);
     var attachments = [];
