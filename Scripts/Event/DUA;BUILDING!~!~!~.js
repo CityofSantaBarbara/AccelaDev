@@ -15,23 +15,32 @@ if (publicUser) {
     addParameter(emailParams, "$$SpecialText$$", pAppName);
     logDebug(pAppName);
 
+    // docListResult = aa.document.getCapDocumentList(capId ,currentUserID);
+    // docListArray = docListResult.getOutput()
+	// varDocLast = docListArray.length;
+	// varLastPos = varDocLast -1
+	// docLastCat = docListArray[varLastPos].getDocCategory();
+	// docLastDate = docListArray[varLastPos].getFileUpLoadDate();
+    // logDebug(docLastDate);
+    // var string = docLastDate.toString();
+    // logDebug(string)
+    // var parts = string.split(" ")[0].split("-"); // Extract date components
+    // var year = parts[0];
+    // var month = parts[1];
+    // var day = parts[2];
+    // var formattedDate = month + "/" + day + "/" + year;
+    // addParameter(emailParams, "$$UploadDate$$", formattedDate);
+    // logDebug(formattedDate);
     docListResult = aa.document.getCapDocumentList(capId ,currentUserID);
     docListArray = docListResult.getOutput()
 	varDocLast = docListArray.length;
 	varLastPos = varDocLast -1
 	docLastCat = docListArray[varLastPos].getDocCategory();
 	docLastDate = docListArray[varLastPos].getFileUpLoadDate();
-    logDebug(docLastDate);
-    var string = docLastDate.toString();
-    logDebug(string)
-    //var parts = string.split(" ")[0].split("-"); // Extract date components
-    //var year = parts[0];
-    //var month = parts[1];
-    //var day = parts[2];
-    //var time = parts[3];
-    //var formattedDate = month + "/" + day + "/" + year + " " + time;
-    var inputDate = string
-    var formattedDate = convertDateFormat(inputDate);
+
+    var docUploadDateJS = new Date(docLastDate.getTime());
+
+    var formattedDate = aa.util.formatDate(docUploadDateJS, "MM/dd/yyyy") + " " + docUploadDateJS.getHours() + ":" + docUploadDateJS.getMinutes() + ":" + docUploadDateJS.getSeconds() + "." + docUploadDateJS.getMilliseconds();
     addParameter(emailParams, "$$UploadDate$$", formattedDate);
     logDebug(formattedDate);
     var attachments = [];
@@ -61,19 +70,3 @@ function getContactEmailByType(cId, contactType) {
     }
     return emailArray;
 }
-
-function convertDateFormat(inputDate) {
-    const regex = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2}\.\d+)$/;
-    const match = inputDate.match(regex);
-  
-    if (!match) {
-      throw new Error("Invalid date format");
-    }
-  
-    const [, year, month, day, hours, minutes, seconds] = match;
-  
-    const formattedDate =
-      month + "/" + day + "/" + year + " " + hours + ":" + minutes + ":" + seconds;
-  
-    return formattedDate;
-  }
