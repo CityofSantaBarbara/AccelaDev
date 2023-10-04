@@ -168,6 +168,54 @@ eval(getScriptText("INCLUDES_CRM", null, false));
                 logDebug("Couldn't send email to, no valid email address");
 	
     }
+/*
+Added by Nicole Folman
+Specifically for Building Pre-Application record type
+When the Workflow Task Comments Issued is in the status of "Comments Issued" run the "BLD PRE Plan Check Corrections" report and send it in and 
+email to the applicant using the email template "BLD PRE PLAN CHECK CORRECTIONS"
+*/
+if (wfTask == "Comments Issued" && wfStatus == "Comments Issued") {
+    logDebug("Comments Issued");
+    var capContactResult = aa.people.getCapContactByCapID(capId);
+    var toEmail = []
+    
+     if (capContactResult.getSuccess()) {
+        var Contacts = capContactResult.getOutput();
+        for (yy in Contacts)
+            if (Contacts[yy].getEmail() != null)
+                toEmail.push("" + Contacts[yy].getEmail());
+
+        if (toEmail.length > 0) {
+            //Get Report and Report Parameters
+            var reportTemplate = "BLD PRE Plan Check Corrections"; // needs editing
+            var reportParameters = aa.util.newHashtable();
+            addParameter(reportParameters, "PermitNum", capId.getCustomID());
+            logDebug("in the report template if statement" + reportParameters);
+            //
+            var rptFile = generateReport4Save(capId, reportTemplate, "Building", reportParameters)
+            var fromEmail = lookup("SCRIPT_EMAIL_FROM", "AGENCY_FROM");
+            var ccEmail = "nfolman@santabarbaraca.gov"; //blank for now
+            var emailParameters = aa.util.newHashtable();
+            addParameter(emailParameters, "$$altID$$", cap.getCapModel().getAltID());
+            addParameter(emailParameters, "$$recordAlias$$", cap.getCapType().getAlias());
+            logDebug("in the Email parameters if statement" + emailParameters);
+            var emailTemplate = "BLD PRE PLAN CHECK CORRECTIONS";
+            var capId4Email = aa.cap.createCapIDScriptModel(capId.getID1(), capId.getID2(), capId.getID3());
+            var fileNames = [];
+            if (rptFile) {
+                fileNames.push(String(rptFile));
+            }
+            conEmailStr = toEmail.join(";");
+            ccEmailStr = ccEmail;
+            aa.document.sendEmailAndSaveAsDocument(fromEmail, conEmailStr, ccEmailStr, emailTemplate, emailParameters, capId4Email, fileNames);
+            logDebug( "BLD PRE: Sent Email template " + emailTemplate + " To Contacts " + conEmailStr);
+        }
+    }
+         else
+            logDebug("BLD PRE - Couldn't send email to, no valid email address");
+
+}
+
 
 if (wfTask == "Permit Issuance" && wfStatus == "Issued") {
                 logDebug("County Assessor permit issuance email");
