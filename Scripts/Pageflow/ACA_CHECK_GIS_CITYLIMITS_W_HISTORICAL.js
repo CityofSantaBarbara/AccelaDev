@@ -1,5 +1,5 @@
 /*------------------------------------------------------------------------------------------------------/
-| Program : ACA_CHECK_GIS_CITYLIMITS.js
+| Program : ACA_CHECK_GIS_CITYLIMITS_W_HISTORICAL.js
 | Event   : ACA_BeforeButton Event
 |
 | Usage   : 
@@ -92,7 +92,7 @@ try {
     // ){
     //    showMessage = true;
     //    cancel = true;
-   //     comment("The parcel you have selected is out of City Limits or a Historic Sturcture or Landmark. Please contact the City for more information");
+   //     comment("The parcel you have selected is out of City Limits or a Historic Structure or Landmark. Please contact the City for more information");
  if ((cityLimits == 'City')
     && ((Landmark == '' || Landmark == null || Landmark =='-') 
     && (Structure == '' || Structure == null || Structure =='-') 
@@ -101,14 +101,14 @@ try {
     )
       {
         showMessage = false;
-        cancel = fasle;
+        cancel = false;
         comment('');
      }else { 
         //cancel=false;
         //comment("");
         showMessage = true;
         cancel = true;
-        comment("The parcel you have selected is out of City Limits or a Historic Sturcture or Landmark. Please contact the City for more information");
+        comment("The parcel you have selected is out of City Limits or a Historic Structure or Landmark. Please contact the City for more information");
    
     } 
 } catch (err) {
